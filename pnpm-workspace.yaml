@@ -3,6 +3,17 @@ packages:
   - docs
   - packages/*
 
+allowBuilds:
+  esbuild: true
+  sharp: true
+  sqlite3: true
+  workerd: true
+
+blockExoticSubdeps: true
+
+catalog:
+  tsx: ^4.21.0
+
 catalogMode: strict
 
 catalogs:
@@ -74,6 +85,7 @@ catalogs:
 enablePrePostScripts: true
 
 minimumReleaseAge: 2880
+
 minimumReleaseAgeExclude:
   - '@ryoppippi/vite-plugin-cloudflare-redirect'
   - vitepress
@@ -82,17 +94,8 @@ minimumReleaseAgeExclude:
   - typedoc
   - typedoc-plugin-markdown
 
-# Security settings for supply chain attack prevention
-strictDepBuilds: true
-blockExoticSubdeps: true
-trustPolicy: no-downgrade
-
-# Explicitly allow build scripts for packages that require them
-# (replaces onlyBuiltDependencies)
-allowBuilds:
-  esbuild: true
-  sharp: true
-  sqlite3: true
-  workerd: true
-
 shellEmulator: true
+
+strictDepBuilds: true
+
+trustPolicy: no-downgrade

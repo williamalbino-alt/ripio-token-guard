@@ -1,0 +1,22 @@
+{
+	"name": "@ccusage/dashboard",
+	"type": "module",
+	"version": "18.0.11",
+	"private": true,
+	"description": "Ripio Token Guard — FinOps Dashboard for Claude Code usage",
+	"scripts": {
+		"dev": "npx -y tsx ./src/index.ts",
+		"start": "npx -y tsx ./src/index.ts",
+		"format": "pnpm run lint --fix",
+		"lint": "eslint --cache .",
+		"typecheck": "tsgo --noEmit"
+	},
+	"devDependencies": {
+		"@hono/node-server": "catalog:runtime",
+		"@ryoppippi/eslint-config": "catalog:lint",
+		"@typescript/native-preview": "catalog:types",
+		"eslint": "catalog:lint",
+		"hono": "catalog:runtime",
+		"tsx": "catalog:"
+	}
+}

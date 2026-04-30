@@ -961,10 +961,11 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 		const relativePath = path.relative(baseDir, file);
 		const parts = relativePath.split(path.sep);
 
-		// Session ID is the directory name containing the JSONL file
-		const sessionId = parts[parts.length - 2] ?? 'unknown';
-		// Project path is everything before the session ID
-		const joinedPath = parts.slice(0, -2).join(path.sep);
+		// Session ID is the filename without extension
+		const filename = parts[parts.length - 1] ?? 'unknown.jsonl';
+		const sessionId = filename.endsWith('.jsonl') ? filename.slice(0, -6) : filename;
+		// Project path is everything before the filename
+		const joinedPath = parts.slice(0, -1).join(path.sep);
 		const projectPath = joinedPath.length > 0 ? joinedPath : 'Unknown Project';
 
 		await processJSONLFileByLine(file, async (line) => {
