@@ -12,6 +12,7 @@ allowBuilds:
 blockExoticSubdeps: true
 
 catalog:
+  open: ^11.0.0
   tsx: ^4.21.0
 
 catalogMode: strict

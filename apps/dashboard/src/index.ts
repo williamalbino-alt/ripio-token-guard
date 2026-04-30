@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S npx tsx
 
 /**
  * @fileoverview Entry point for Token Guard Dashboard
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { serve } from '@hono/node-server';
 import { createDashboardApp } from './server.ts';
 import { startWatcher } from './watcher.ts';
+import open from 'open';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PORT = 3000;
@@ -65,8 +66,5 @@ serve({ fetch: app.fetch, port }, (info) => {
 	process.stderr.write(`  Config:    ${configPath}\n`);
 	process.stderr.write(`  ────────────────────────────────\n\n`);
 
-	// Try to open in browser on macOS
-	import('node:child_process').then(({ exec }) => {
-		exec(`open ${url}`);
-	}).catch(() => {});
+	open(url).catch(() => {});
 });
