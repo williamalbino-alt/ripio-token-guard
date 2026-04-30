@@ -29,19 +29,25 @@
 
 ---
 
-## ⚡ Inicio Rápido
+## ⚡ Inicio Rápido (Vía NPX)
+
+Como **Token Guard** es una herramienta de uso interno, se distribuye de forma privada y segura a través de GitHub Packages. 
+
+### 1. Autenticación (Solo la primera vez)
+Para poder descargar el paquete, necesitás estar autenticado en el NPM Registry de GitHub. Ejecutá este comando e iniciá sesión con tu usuario de GitHub y un Personal Access Token (PAT) con permisos de `read:packages`:
 
 ```bash
-# 1. Cloná el repo
-git clone https://github.com/williamalbino-alt/ripio-token-guard.git
-cd ripio-token-guard
-
-# 2. Instalá dependencias
-pnpm install
-
-# 3. Iniciá el dashboard
-cd apps/dashboard && pnpm run dev
+npm login --registry=https://npm.pkg.github.com
 ```
+
+### 2. Ejecución (Día a día)
+Una vez autenticado, solo necesitás correr un comando en cualquier terminal. El dashboard se descargará (si hay actualizaciones) y se abrirá automáticamente en tu navegador:
+
+```bash
+npx @ripio/token-guard
+```
+
+> **Nota:** Al usar `npx` garantizamos que **siempre** estés corriendo la versión más reciente con las métricas y precios de la API de Anthropic actualizados.
 
 El dashboard se abre automáticamente en `http://localhost:3000`. **No requiere internet.**
 
