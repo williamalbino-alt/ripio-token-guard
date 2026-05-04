@@ -990,14 +990,14 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 
 		await processJSONLFileByLine(file, async (line) => {
 			try {
-				const parsed = JSON.parse(line) as any;
+				const parsed = JSON.parse(line);
 				
 				// Capture metadata independently of usage schema
-				if (parsed.type === 'ai-title') aiTitle = parsed.aiTitle;
-				if (parsed.gitBranch) gitBranch = parsed.gitBranch;
-				if (parsed.entrypoint) entrypoint = parsed.entrypoint;
-				if (parsed.cwd) cwd = parsed.cwd;
-				if (parsed.toolUseResult?.is_error || parsed.isApiErrorMessage) hasErrors = true;
+				if (parsed.type === 'ai-title') {aiTitle = parsed.aiTitle;}
+				if (parsed.gitBranch) {gitBranch = parsed.gitBranch;}
+				if (parsed.entrypoint) {entrypoint = parsed.entrypoint;}
+				if (parsed.cwd) {cwd = parsed.cwd;}
+				if (parsed.toolUseResult?.is_error || parsed.isApiErrorMessage) {hasErrors = true;}
 				
 				if (parsed.message?.content && Array.isArray(parsed.message.content)) {
 					for (const item of parsed.message.content) {

@@ -19,21 +19,22 @@
 
 ### ¿Por qué lo necesitás?
 
-| Sin Token Guard | Con Token Guard |
-|:---:|:---:|
-| 🤷 "¿Cuánto gasté este mes?" | 📊 Dashboard con KPIs en tiempo real |
-| 😰 "Opus está caro pero no sé cuánto" | 💡 Desglose por modelo con % de costo |
-| 🔥 "Me pasé del budget sin darme cuenta" | 🔔 Alertas automáticas por threshold |
-| 📁 "¿Qué proyecto quema más tokens?" | 📂 Ranking de proyectos por consumo |
-| ❓ "¿Cómo bajo los costos?" | 🎓 Tutoriales interactivos con comandos copiables |
+|             Sin Token Guard              |                  Con Token Guard                  |
+| :--------------------------------------: | :-----------------------------------------------: |
+|       🤷 "¿Cuánto gasté este mes?"       |       📊 Dashboard con KPIs en tiempo real        |
+|  😰 "Opus está caro pero no sé cuánto"   |       💡 Desglose por modelo con % de costo       |
+| 🔥 "Me pasé del budget sin darme cuenta" |       🔔 Alertas automáticas por threshold        |
+|   📁 "¿Qué proyecto quema más tokens?"   |        📂 Ranking de proyectos por consumo        |
+|       ❓ "¿Cómo bajo los costos?"        | 🎓 Tutoriales interactivos con comandos copiables |
 
 ---
 
 ## ⚡ Inicio Rápido (Vía NPX)
 
-Como **Token Guard** es una herramienta de uso interno, se distribuye de forma privada y segura a través de GitHub Packages. 
+Como **Token Guard** es una herramienta de uso interno, se distribuye de forma privada y segura a través de GitHub Packages.
 
 ### 1. Autenticación (Solo la primera vez)
+
 Para poder descargar el paquete, necesitás estar autenticado en el NPM Registry de GitHub. Ejecutá este comando e iniciá sesión con tu usuario de GitHub y un Personal Access Token (PAT) con permisos de `read:packages`:
 
 ```bash
@@ -41,6 +42,7 @@ npm login --registry=https://npm.pkg.github.com
 ```
 
 ### 2. Ejecución (Día a día)
+
 Una vez autenticado, solo necesitás correr un comando en cualquier terminal. El dashboard se descargará (si hay actualizaciones) y se abrirá automáticamente en tu navegador:
 
 ```bash
@@ -70,14 +72,14 @@ Incluye gráficos de barras (costo diario 30d), donut (costo por modelo), y barr
 
 ### 📅 Reportes
 
-| Reporte | Descripción |
-|---------|-------------|
-| **Diario** | Tokens y costos agregados por fecha con filtros |
-| **Mensual** | Vista consolidada por mes |
-| **Proyectos** | Consumo agrupado por directorio de proyecto |
-| **Sesiones** | Top 50 sesiones con títulos generados por IA, rama de Git, directorio y uso de herramientas |
-| **Modelos** | Desglose completo por modelo Claude |
-| **Origen de Consumo** | Análisis explicativo de tokens por tipo (Input, Output, Cache) y fuentes de gasto |
+| Reporte               | Descripción                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| **Diario**            | Tokens y costos agregados por fecha con filtros                                             |
+| **Mensual**           | Vista consolidada por mes                                                                   |
+| **Proyectos**         | Consumo agrupado por directorio de proyecto                                                 |
+| **Sesiones**          | Top 50 sesiones con títulos generados por IA, rama de Git, directorio y uso de herramientas |
+| **Modelos**           | Desglose completo por modelo Claude                                                         |
+| **Origen de Consumo** | Análisis explicativo de tokens por tipo (Input, Output, Cache) y fuentes de gasto           |
 
 ### 🕵️‍♂️ Análisis Forense de Sesiones
 
@@ -91,6 +93,7 @@ A diferencia de un tracker común, Token Guard extrae contexto avanzado directam
 ### 📥 Exportación a HTML (Reporte para Compartir)
 
 Con un solo clic en la barra superior, podés exportar el dashboard entero a un archivo **HTML estático e interactivo**.
+
 - Funciona 100% offline (CSS, gráficas e imágenes están embedidas en base64).
 - Ideal para compartir un "snapshot" de los gastos con tu equipo o management a través de Slack o Email.
 
@@ -151,15 +154,15 @@ Token Guard
 
 ### Stack Técnico
 
-| Componente | Tecnología |
-|-----------|-----------|
-| Backend | [Hono](https://hono.dev/) (API REST) |
-| Frontend | Vanilla JS + CSS |
-| Gráficos | Chart.js 4 |
-| Iconos | Lucide |
-| Watcher | FSEvents (macOS nativo) |
-| Transporte | SSE (Server-Sent Events) |
-| Datos | JSONL locales de Claude Code |
+| Componente | Tecnología                           |
+| ---------- | ------------------------------------ |
+| Backend    | [Hono](https://hono.dev/) (API REST) |
+| Frontend   | Vanilla JS + CSS                     |
+| Gráficos   | Chart.js 4                           |
+| Iconos     | Lucide                               |
+| Watcher    | FSEvents (macOS nativo)              |
+| Transporte | SSE (Server-Sent Events)             |
+| Datos      | JSONL locales de Claude Code         |
 
 ### Flujo de Datos
 
@@ -191,11 +194,11 @@ Token Guard
 
 ### Variables de Entorno
 
-| Variable | Descripción | Default |
-|----------|-------------|---------|
+| Variable            | Descripción                      | Default                      |
+| ------------------- | -------------------------------- | ---------------------------- |
 | `CLAUDE_CONFIG_DIR` | Directorio(s) de datos de Claude | `~/.claude,~/.config/claude` |
-| `LOG_LEVEL` | Nivel de logs (0-5) | `2` |
-| `PORT` | Puerto del dashboard | `3000` |
+| `LOG_LEVEL`         | Nivel de logs (0-5)              | `2`                          |
+| `PORT`              | Puerto del dashboard             | `3000`                       |
 
 ### Thresholds (desde el dashboard)
 
