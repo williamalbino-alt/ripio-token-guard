@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Token Guard — FinOps Dashboard</title>
+  <link rel="icon" type="image/png" href="/ripio-logo.png">
   <link rel="stylesheet" href="/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -25,6 +26,7 @@
     <button class="nav-btn" data-page="projects"><i data-lucide="folder-kanban"></i><span class="lbl" data-i18n="nav.projects">Proyectos</span></button>
     <button class="nav-btn" data-page="sessions"><i data-lucide="messages-square"></i><span class="lbl" data-i18n="nav.sessions">Sesiones</span></button>
     <button class="nav-btn" data-page="models"><i data-lucide="cpu"></i><span class="lbl" data-i18n="nav.models">Modelos</span></button>
+    <button class="nav-btn" data-page="breakdown"><i data-lucide="help-circle"></i><span class="lbl" data-i18n="nav.breakdown">Origen de Consumo</span></button>
     <div class="nav-label" data-i18n="nav.mgmt_label">Gestión</div>
     <button class="nav-btn" data-page="alerts"><i data-lucide="shield-alert"></i><span class="lbl" data-i18n="nav.alerts">Alertas y Límites</span></button>
     <button class="nav-btn" data-page="management"><i data-lucide="settings-2"></i><span class="lbl" data-i18n="nav.tokenMgmt">Gestión de Tokens</span></button>
@@ -49,6 +51,7 @@
   <section id="page-projects" class="page"><div id="pj-content"></div></section>
   <section id="page-sessions" class="page"><div id="ss-content"></div></section>
   <section id="page-models" class="page"><div id="md-content"></div></section>
+  <section id="page-breakdown" class="page"><div id="br-content"></div></section>
   <section id="page-alerts" class="page"><div id="al-content"></div></section>
   <section id="page-management" class="page"><div id="mg-content"></div></section>
   <section id="page-insights" class="page"><div id="in-content"></div></section>

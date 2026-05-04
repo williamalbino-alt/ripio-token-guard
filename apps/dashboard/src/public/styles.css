@@ -74,12 +74,14 @@ body{font-family:'Inter',sans-serif;background:#f0eef6;color:var(--gray-800);min
 .page-head div p{font-size:13px;color:var(--gray-500);margin-top:1px;}
 .head-actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
 .refresh-ts{font-size:11px;color:var(--gray-400);white-space:nowrap;}
-.btn-refresh{width:36px;height:36px;border-radius:10px;border:1px solid var(--gray-200);background:var(--white);
+.btn-refresh,.btn-download{width:36px;height:36px;border-radius:10px;border:1px solid var(--gray-200);background:var(--white);
   display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:var(--gray-500);}
-.btn-refresh:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);box-shadow:0 2px 8px rgba(124,58,237,.12);}
-.btn-refresh svg{width:16px;height:16px;}
+.btn-refresh:hover,.btn-download:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);box-shadow:0 2px 8px rgba(124,58,237,.12);}
+.btn-refresh svg,.btn-download svg{width:16px;height:16px;}
 .btn-refresh.spinning svg{animation:spin .6s linear;}
+.btn-download.downloading svg{animation:downloadBounce .8s ease infinite;}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes downloadBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
 
 /* ═══ CARDS ═══ */
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px;}

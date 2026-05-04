@@ -87,7 +87,25 @@ async function loadSessions(){
   skel('ss-content');const data=await api('/api/sessions');
   const sorted=data.sessions.sort((a,b)=>b.totalCost-a.totalCost).slice(0,50);
   let h=head('messages-square',t('sess.title'),t('sess.sub'));
-  h+='<div class="crd"><div class="tw">'+tbl([t('th.session'),t('th.project'),t('th.lastAct'),t('th.tokens'),t('th.cost'),t('th.models')],sorted.map(s=>[s.sessionId.slice(0,14)+'…',s.projectPath,s.lastActivity,fmtK(s.totalTokens),fmt(s.totalCost),s.modelsUsed.map(sm).join(', ')]))+'</div></div>';
+  h+='<div class="crd"><div class="tw">'+tbl([t('th.session'),t('th.project'),t('th.env'),t('th.tools'),t('th.cost')],sorted.map(s=>{
+    let sn = s.aiTitle ? '<div style="font-weight:600;color:var(--gray-900)">'+s.aiTitle+'</div><div style="font-size:11px;color:var(--gray-400)">ID: '+s.sessionId.slice(0,14)+'…</div>' : '<div style="color:var(--gray-700)">ID: '+s.sessionId.slice(0,14)+'…</div>';
+    if(s.hasErrors) sn += '<span class="badge badge-r" style="font-size:9px;padding:2px 4px;margin-top:4px">⚠️ Error/Alerta</span>';
+    
+    let pi = '<div style="font-weight:500">'+s.projectPath+'</div>';
+    if(s.cwd && s.cwd !== s.projectPath) pi += '<div style="font-size:11px;color:var(--gray-500);margin-top:2px">📂 '+s.cwd.split('/').slice(-2).join('/')+'</div>';
+    if(s.gitBranch && s.gitBranch !== 'HEAD') pi += '<div style="font-size:11px;color:var(--primary);margin-top:2px">🌿 '+s.gitBranch+'</div>';
+    
+    let tl = '';
+    if(s.toolsUsed && Object.keys(s.toolsUsed).length > 0) {
+      tl = '<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;max-width:200px;margin-left:auto">' + Object.entries(s.toolsUsed).map(([k,v]) => '<span class="badge" style="background:#f1f5f9;color:#475569;font-size:10px;padding:2px 6px">'+k+' <span style="opacity:0.6">('+v+')</span></span>').join('') + '</div>';
+    } else {
+      tl = '<span style="color:var(--gray-400)">-</span>';
+    }
+    
+    let env = s.entrypoint === 'claude-vscode' ? '🖥️ VS Code' : (s.entrypoint === 'cli' ? '💻 CLI' : '🤖 API');
+    
+    return [sn, pi, env, tl, '<div style="font-weight:700;color:var(--gray-900)">'+fmt(s.totalCost)+'</div><div style="font-size:11px;color:var(--gray-500)">'+fmtK(s.totalTokens)+' tk</div>'];
+  }))+'</div></div>';
   document.getElementById('ss-content').innerHTML=h;lucide.createIcons();
 }
 
@@ -183,6 +201,37 @@ async function loadInsights(){
   }
   if(data.warnings.length){h+='<div class="ib risk"><h4>'+ico('alert-triangle')+' '+t('ins.warnings')+'</h4><ul>';for(const w of data.warnings)h+='<li>'+w+'</li>';h+='</ul></div>';}
   el.innerHTML=h;lucide.createIcons();
+}
+
+async function loadBreakdown(){
+  skel('br-content');
+  const [daily] = await Promise.all([api('/api/daily')]);
+  
+  const tI = daily.daily.reduce((a,d)=>a+d.inputTokens,0);
+  const tO = daily.daily.reduce((a,d)=>a+d.outputTokens,0);
+  const cC = daily.daily.reduce((a,d)=>a+d.cacheCreationTokens,0);
+  const cR = daily.daily.reduce((a,d)=>a+d.cacheReadTokens,0);
+  
+  let h=head('help-circle', t('br.title'), t('br.sub'));
+  
+  h+='<div class="g2">';
+  h+='<div class="crd full"><h3>'+ico('book-open')+' '+t('br.whatAreTokens')+'</h3>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;">';
+  h+='<div class="ib info" style="margin:0"><h4>'+ico('arrow-down-right')+' Input</h4><p>'+t('br.inputDesc')+'</p><div class="val" style="font-size:20px;font-weight:800;color:var(--accent-blue);margin-top:8px;">'+fmtK(tI)+'</div></div>';
+  h+='<div class="ib cost" style="margin:0"><h4>'+ico('arrow-up-right')+' Output</h4><p>'+t('br.outputDesc')+'</p><div class="val" style="font-size:20px;font-weight:800;color:var(--accent-amber);margin-top:8px;">'+fmtK(tO)+'</div></div>';
+  h+='<div class="ib action" style="margin:0"><h4>'+ico('database')+' Cache Read</h4><p>'+t('br.cacheReadDesc')+'</p><div class="val" style="font-size:20px;font-weight:800;color:var(--accent-emerald);margin-top:8px;">'+fmtK(cR)+'</div></div>';
+  h+='<div class="ib risk" style="margin:0"><h4>'+ico('zap')+' Cache Create</h4><p>'+t('br.cacheCreateDesc')+'</p><div class="val" style="font-size:20px;font-weight:800;color:var(--accent-rose);margin-top:8px;">'+fmtK(cC)+'</div></div>';
+  h+='</div></div>';
+  
+  h+='<div class="crd full" style="margin-top:16px"><h3>'+ico('cpu')+' '+t('br.sourcesTitle')+'</h3>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:16px;">';
+  h+='<div class="ib" style="margin:0;border-top:4px solid #7c3aed"><h4>'+ico('messages-square')+' '+t('br.chatContext')+'</h4><p>'+t('br.chatContextDesc')+'</p></div>';
+  h+='<div class="ib" style="margin:0;border-top:4px solid #f43f5e"><h4>'+ico('blocks')+' '+t('br.mcpTools')+'</h4><p>'+t('br.mcpToolsDesc')+'</p></div>';
+  h+='<div class="ib" style="margin:0;border-top:4px solid #06b6d4"><h4>'+ico('file-code')+' '+t('br.largeFiles')+'</h4><p>'+t('br.largeFilesDesc')+'</p></div>';
+  h+='</div></div></div>';
+  
+  document.getElementById('br-content').innerHTML=h;
+  lucide.createIcons();
 }
 
 loadOverview();

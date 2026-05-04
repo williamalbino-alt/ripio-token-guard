@@ -75,8 +75,24 @@ Incluye gráficos de barras (costo diario 30d), donut (costo por modelo), y barr
 | **Diario** | Tokens y costos agregados por fecha con filtros |
 | **Mensual** | Vista consolidada por mes |
 | **Proyectos** | Consumo agrupado por directorio de proyecto |
-| **Sesiones** | Top 50 sesiones ordenadas por costo |
+| **Sesiones** | Top 50 sesiones con títulos generados por IA, rama de Git, directorio y uso de herramientas |
 | **Modelos** | Desglose completo por modelo Claude |
+| **Origen de Consumo** | Análisis explicativo de tokens por tipo (Input, Output, Cache) y fuentes de gasto |
+
+### 🕵️‍♂️ Análisis Forense de Sesiones
+
+A diferencia de un tracker común, Token Guard extrae contexto avanzado directamente de los logs ocultos de Claude:
+
+- **Títulos por IA (`aiTitle`)**: Reemplaza IDs ilegibles por títulos descriptivos generados por el propio Claude para cada tarea.
+- **Rastreo de Herramientas**: Muestra exactamente cuántas veces Claude usó comandos internos (`Bash`, `Glob`, `Edit`, `MCP`). Ideal para detectar agentes atascados en loops caros.
+- **Contexto de Desarrollo**: Extrae la rama de Git (`gitBranch`), el subdirectorio exacto (`cwd`) y el entorno (`CLI` vs `VS Code`).
+- **Detección de Errores**: Marca sesiones donde hubo alertas de límite de tokens o fallos de API.
+
+### 📥 Exportación a HTML (Reporte para Compartir)
+
+Con un solo clic en la barra superior, podés exportar el dashboard entero a un archivo **HTML estático e interactivo**.
+- Funciona 100% offline (CSS, gráficas e imágenes están embedidas en base64).
+- Ideal para compartir un "snapshot" de los gastos con tu equipo o management a través de Slack o Email.
 
 ### 🔔 Alertas & Límites
 

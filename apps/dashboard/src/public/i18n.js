@@ -39,7 +39,8 @@ es:{
 'th.project':'Proyecto','th.totalCost':'Costo Total','th.tokens':'Tokens','th.days':'Días',
 // Sessions
 'sess.title':'Sesiones','sess.sub':'Top 50 sesiones por costo',
-'th.session':'Sesión','th.lastAct':'Última Activ.',
+'th.session':'Sesión / Tarea','th.lastAct':'Última Activ.',
+'th.env':'Entorno','th.tools':'Herramientas',
 // Models
 'mod.title':'Modelos','mod.sub':'Desglose por modelo Claude',
 'mod.costChart':'Costo por Modelo','mod.tokenDist':'Distribución de Tokens','mod.details':'Detalle',
@@ -72,9 +73,32 @@ es:{
 'ins.totalCost':'Costo Total','ins.mostExpModel':'Modelo Más Caro','ins.avgDaily':'Promedio Diario',
 'ins.potentialSaving':'Ahorro Potencial','ins.perMonth':'por mes','ins.diagnosis':'Diagnóstico de Costos',
 'ins.estSaving':'Ahorro estimado: ','ins.risk':'Riesgo','ins.warnings':'Puntos de Atención',
+// Breakdown
+'br.title':'Orígenes de Consumo',
+'br.sub':'Entiende de dónde provienen los gastos de tokens',
+'br.whatAreTokens':'Tipos de Tokens (Facturación)',
+'br.inputDesc':'Son los tokens que envías a Claude (tu prompt, archivos, contexto). Es el origen principal de los costos iniciales.',
+'br.outputDesc':'Son los tokens que Claude genera como respuesta (código, explicaciones). Tienen un costo mucho mayor por token.',
+'br.cacheReadDesc':'¡Ahorro! Son lecturas del caché de contexto. Cuando envías el mismo archivo grande varias veces, Claude lo lee del caché por una fracción del costo.',
+'br.cacheCreateDesc':'El costo de indexar el contexto por primera vez para poder cachearlo. Ocurre al inicio de sesiones largas o al agregar archivos nuevos.',
+'br.sourcesTitle':'Principales Fuentes de Consumo',
+'br.chatContext':'Historial y Contexto',
+'br.chatContextDesc':'A medida que la conversación se alarga, Claude re-envía todo el historial para mantener la memoria. Esto genera mucho consumo de Input (o Cache Read). Usa /compact para reducirlo.',
+'br.mcpTools':'Herramientas y MCP',
+'br.mcpToolsDesc':'Las herramientas que usas (como servidores MCP, ESLint, extensiones) pueden leer archivos grandes en segundo plano y enviarlos a Claude, aumentando el Input invisible.',
+'br.largeFiles':'Archivos y Bases de Código',
+'br.largeFilesDesc':'Pedirle a Claude que lea carpetas enteras o archivos muy grandes gasta muchos tokens. Es mejor ser específico sobre qué archivos necesita leer.',
+'nav.breakdown':'Origen de Consumo',
 // Core
 'core.loading':'Cargando datos...','core.costUpdated':'Costo actualizado: $',
 'core.alertPrefix':'ALERTA: ',
+'core.downloadReport':'Descargar reporte HTML',
+'core.generatingReport':'Generando reporte...',
+'core.downloadSuccess':'¡Reporte descargado!',
+'core.downloadError':'Error al generar el reporte',
+'core.readOnly':'SOLO LECTURA',
+'core.generatedAt':'Generado el',
+'core.shareNote':'Este reporte es una snapshot estática para compartir',
 // Toast
 'toast.langChanged':'Idioma cambiado a {lang}'
 },
@@ -117,7 +141,8 @@ pt:{
 'th.project':'Projeto','th.totalCost':'Custo Total','th.tokens':'Tokens','th.days':'Dias',
 // Sessions
 'sess.title':'Sessões','sess.sub':'Top 50 sessões por custo',
-'th.session':'Sessão','th.lastAct':'Última Ativ.',
+'th.session':'Sessão / Tarefa','th.lastAct':'Última Ativ.',
+'th.env':'Ambiente','th.tools':'Ferramentas',
 // Models
 'mod.title':'Modelos','mod.sub':'Breakdown por modelo Claude',
 'mod.costChart':'Custo por Modelo','mod.tokenDist':'Distribuição de Tokens','mod.details':'Detalhamento',
@@ -150,9 +175,32 @@ pt:{
 'ins.totalCost':'Custo Total','ins.mostExpModel':'Modelo Mais Caro','ins.avgDaily':'Média Diária',
 'ins.potentialSaving':'Economia Potencial','ins.perMonth':'por mês','ins.diagnosis':'Diagnóstico de Custos',
 'ins.estSaving':'Economia estimada: ','ins.risk':'Risco','ins.warnings':'Pontos de Atenção',
+// Breakdown
+'br.title':'Origem do Consumo',
+'br.sub':'Entenda de onde vêm os gastos de tokens',
+'br.whatAreTokens':'Tipos de Tokens (Faturamento)',
+'br.inputDesc':'São os tokens que você envia para o Claude (seu prompt, arquivos, contexto). É a principal fonte dos custos iniciais.',
+'br.outputDesc':'São os tokens que o Claude gera como resposta (o código que ele escreve, explicações). Têm um custo bem maior por token.',
+'br.cacheReadDesc':'Economia! São leituras do cache de contexto. Quando você envia o mesmo arquivo grande várias vezes, o Claude lê do cache por uma fração do custo.',
+'br.cacheCreateDesc':'O custo de indexar o contexto pela primeira vez para poder cachear. Ocorre no início de sessões longas ou ao adicionar arquivos novos.',
+'br.sourcesTitle':'Principais Fontes de Consumo',
+'br.chatContext':'Histórico e Contexto',
+'br.chatContextDesc':'À medida que a conversa se alonga, o Claude reenvia todo o histórico para manter a memória. Isso gera muito consumo de Input (ou Cache Read). Use /compact para reduzir.',
+'br.mcpTools':'Ferramentas e MCP',
+'br.mcpToolsDesc':'As ferramentas que você usa (como servidores MCP, ESLint, extensões) podem ler arquivos grandes em segundo plano e enviá-los ao Claude, aumentando o Input invisível.',
+'br.largeFiles':'Arquivos e Codebases',
+'br.largeFilesDesc':'Pedir para o Claude ler pastas inteiras ou arquivos muito grandes gasta muitos tokens. É melhor ser específico sobre quais arquivos ele deve ler.',
+'nav.breakdown':'Origem do Consumo',
 // Core
 'core.loading':'Carregando dados...','core.costUpdated':'Custo atualizado: $',
 'core.alertPrefix':'ALERTA: ',
+'core.downloadReport':'Baixar relatório HTML',
+'core.generatingReport':'Gerando relatório...',
+'core.downloadSuccess':'Relatório baixado!',
+'core.downloadError':'Erro ao gerar o relatório',
+'core.readOnly':'SOMENTE LEITURA',
+'core.generatedAt':'Gerado em',
+'core.shareNote':'Este relatório é um snapshot estático para compartilhar',
 // Toast
 'toast.langChanged':'Idioma alterado para {lang}'
 }

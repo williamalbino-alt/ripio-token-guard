@@ -271,6 +271,12 @@ export const sessionUsageSchema = v.object({
 	versions: v.array(versionSchema), // List of unique versions used in this session
 	modelsUsed: v.array(modelNameSchema),
 	modelBreakdowns: v.array(modelBreakdownSchema),
+	aiTitle: v.optional(v.string()),
+	gitBranch: v.optional(v.string()),
+	entrypoint: v.optional(v.string()),
+	cwd: v.optional(v.string()),
+	toolsUsed: v.optional(v.record(v.string(), v.number())),
+	hasErrors: v.optional(v.boolean()),
 });
 
 /**
@@ -954,6 +960,12 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 		cost: number;
 		timestamp: string;
 		model: string | undefined;
+		aiTitle?: string;
+		gitBranch?: string;
+		entrypoint?: string;
+		cwd?: string;
+		hasErrors: boolean;
+		toolsUsed: Record<string, number>;
 	}> = [];
 
 	for (const { file, baseDir } of sortedFilesWithBase) {
@@ -968,9 +980,33 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 		const joinedPath = parts.slice(0, -1).join(path.sep);
 		const projectPath = joinedPath.length > 0 ? joinedPath : 'Unknown Project';
 
+		// Metadata tracking per session file
+		let aiTitle: string | undefined;
+		let gitBranch: string | undefined;
+		let entrypoint: string | undefined;
+		let cwd: string | undefined;
+		let hasErrors = false;
+		const toolsUsed: Record<string, number> = {};
+
 		await processJSONLFileByLine(file, async (line) => {
 			try {
-				const parsed = JSON.parse(line) as unknown;
+				const parsed = JSON.parse(line) as any;
+				
+				// Capture metadata independently of usage schema
+				if (parsed.type === 'ai-title') aiTitle = parsed.aiTitle;
+				if (parsed.gitBranch) gitBranch = parsed.gitBranch;
+				if (parsed.entrypoint) entrypoint = parsed.entrypoint;
+				if (parsed.cwd) cwd = parsed.cwd;
+				if (parsed.toolUseResult?.is_error || parsed.isApiErrorMessage) hasErrors = true;
+				
+				if (parsed.message?.content && Array.isArray(parsed.message.content)) {
+					for (const item of parsed.message.content) {
+						if (item.type === 'tool_use' && item.name) {
+							toolsUsed[item.name] = (toolsUsed[item.name] || 0) + 1;
+						}
+					}
+				}
+
 				const result = v.safeParse(usageDataSchema, parsed);
 				if (!result.success) {
 					return;
@@ -999,6 +1035,12 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 					cost,
 					timestamp: data.timestamp,
 					model: getDisplayModelName(data),
+					aiTitle,
+					gitBranch,
+					entrypoint,
+					cwd,
+					hasErrors,
+					toolsUsed: { ...toolsUsed }
 				});
 			} catch {
 				// Skip invalid JSON lines
@@ -1062,6 +1104,17 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 				versions: uniq(versions).sort() as Version[],
 				modelsUsed: modelsUsed as ModelName[],
 				modelBreakdowns,
+				aiTitle: latestEntry.aiTitle,
+				gitBranch: latestEntry.gitBranch,
+				entrypoint: latestEntry.entrypoint,
+				cwd: latestEntry.cwd,
+				hasErrors: entries.some(e => e.hasErrors),
+				toolsUsed: entries.reduce((acc, curr) => {
+					for (const [tool, count] of Object.entries(curr.toolsUsed || {})) {
+						acc[tool] = (acc[tool] || 0) + count;
+					}
+					return acc;
+				}, {} as Record<string, number>)
 			};
 		})
 		.filter((item) => item != null);
