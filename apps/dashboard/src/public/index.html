@@ -1,69 +1,112 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Token Guard — FinOps Dashboard</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-</head>
-<body>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Token Guard — FinOps Dashboard</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="stylesheet" href="/styles.css" />
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+		<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+	</head>
+	<body>
+		<!-- FLOATING NAV RAIL -->
+		<nav class="nav-rail" id="nav">
+			<button class="nav-pin" onclick="document.getElementById('nav').classList.toggle('pinned')">
+				<i data-lucide="pin"></i>
+			</button>
+			<div class="nav-brand">
+				<img src="/ripio-logo.png" alt="Token Guard" />
+				<div class="txt">
+					<h1>Token Guard</h1>
+					<span>FinOps Dashboard</span>
+				</div>
+			</div>
+			<div class="nav-body">
+				<div class="nav-label" data-i18n="nav.dashboards">Dashboards</div>
+				<button class="nav-btn active" data-page="overview">
+					<i data-lucide="layout-dashboard"></i
+					><span class="lbl" data-i18n="nav.overview">Overview</span>
+				</button>
+				<button class="nav-btn" data-page="daily">
+					<i data-lucide="calendar-days"></i
+					><span class="lbl" data-i18n="nav.daily">Reporte Diario</span>
+				</button>
+				<button class="nav-btn" data-page="monthly">
+					<i data-lucide="calendar-range"></i
+					><span class="lbl" data-i18n="nav.monthly">Reporte Mensual</span>
+				</button>
+				<div class="nav-label" data-i18n="nav.analysis">Análisis</div>
+				<button class="nav-btn" data-page="projects">
+					<i data-lucide="folder-kanban"></i
+					><span class="lbl" data-i18n="nav.projects">Proyectos</span>
+				</button>
+				<button class="nav-btn" data-page="sessions">
+					<i data-lucide="messages-square"></i
+					><span class="lbl" data-i18n="nav.sessions">Sesiones</span>
+				</button>
+				<button class="nav-btn" data-page="models">
+					<i data-lucide="cpu"></i><span class="lbl" data-i18n="nav.models">Modelos</span>
+				</button>
+				<button class="nav-btn" data-page="breakdown">
+					<i data-lucide="help-circle"></i
+					><span class="lbl" data-i18n="nav.breakdown">Origen de Consumo</span>
+				</button>
+				<div class="nav-label" data-i18n="nav.mgmt_label">Gestión</div>
+				<button class="nav-btn" data-page="alerts">
+					<i data-lucide="shield-alert"></i
+					><span class="lbl" data-i18n="nav.alerts">Alertas y Límites</span>
+				</button>
+				<button class="nav-btn" data-page="management">
+					<i data-lucide="settings-2"></i
+					><span class="lbl" data-i18n="nav.tokenMgmt">Gestión de Tokens</span>
+				</button>
+				<button class="nav-btn" data-page="insights">
+					<i data-lucide="sparkles"></i
+					><span class="lbl" data-i18n="nav.insights">Resumen Inteligente</span>
+				</button>
+			</div>
+			<div class="lang-wrap">
+				<div
+					class="lang-toggle"
+					id="lang-toggle"
+					onclick="setLang(getLang() === 'es' ? 'pt' : 'es')"
+				>
+					<span class="lang-flag">🇦🇷</span>
+					<span class="lang-lbl" id="lang-es">ES</span>
+					<div class="lang-pill"></div>
+					<span class="lang-lbl" id="lang-pt">PT</span>
+					<span class="lang-flag">🇧🇷</span>
+				</div>
+			</div>
+			<div class="nav-foot"><p data-i18n="nav.footer">100% Offline · Sin Telemetría</p></div>
+		</nav>
 
-<!-- FLOATING NAV RAIL -->
-<nav class="nav-rail" id="nav">
-  <button class="nav-pin" onclick="document.getElementById('nav').classList.toggle('pinned')"><i data-lucide="pin"></i></button>
-  <div class="nav-brand">
-    <img src="/ripio-logo.png" alt="Token Guard">
-    <div class="txt"><h1>Token Guard</h1><span>FinOps Dashboard</span></div>
-  </div>
-  <div class="nav-body">
-    <div class="nav-label" data-i18n="nav.dashboards">Dashboards</div>
-    <button class="nav-btn active" data-page="overview"><i data-lucide="layout-dashboard"></i><span class="lbl" data-i18n="nav.overview">Overview</span></button>
-    <button class="nav-btn" data-page="daily"><i data-lucide="calendar-days"></i><span class="lbl" data-i18n="nav.daily">Reporte Diario</span></button>
-    <button class="nav-btn" data-page="monthly"><i data-lucide="calendar-range"></i><span class="lbl" data-i18n="nav.monthly">Reporte Mensual</span></button>
-    <div class="nav-label" data-i18n="nav.analysis">Análisis</div>
-    <button class="nav-btn" data-page="projects"><i data-lucide="folder-kanban"></i><span class="lbl" data-i18n="nav.projects">Proyectos</span></button>
-    <button class="nav-btn" data-page="sessions"><i data-lucide="messages-square"></i><span class="lbl" data-i18n="nav.sessions">Sesiones</span></button>
-    <button class="nav-btn" data-page="models"><i data-lucide="cpu"></i><span class="lbl" data-i18n="nav.models">Modelos</span></button>
-    <button class="nav-btn" data-page="breakdown"><i data-lucide="help-circle"></i><span class="lbl" data-i18n="nav.breakdown">Origen de Consumo</span></button>
-    <div class="nav-label" data-i18n="nav.mgmt_label">Gestión</div>
-    <button class="nav-btn" data-page="alerts"><i data-lucide="shield-alert"></i><span class="lbl" data-i18n="nav.alerts">Alertas y Límites</span></button>
-    <button class="nav-btn" data-page="management"><i data-lucide="settings-2"></i><span class="lbl" data-i18n="nav.tokenMgmt">Gestión de Tokens</span></button>
-    <button class="nav-btn" data-page="insights"><i data-lucide="sparkles"></i><span class="lbl" data-i18n="nav.insights">Resumen Inteligente</span></button>
-  </div>
-  <div class="lang-wrap">
-    <div class="lang-toggle" id="lang-toggle" onclick="setLang(getLang()==='es'?'pt':'es')">
-      <span class="lang-flag">🇦🇷</span>
-      <span class="lang-lbl" id="lang-es">ES</span>
-      <div class="lang-pill"></div>
-      <span class="lang-lbl" id="lang-pt">PT</span>
-      <span class="lang-flag">🇧🇷</span>
-    </div>
-  </div>
-  <div class="nav-foot"><p data-i18n="nav.footer">100% Offline · Sin Telemetría</p></div>
-</nav>
+		<main class="main">
+			<section id="page-overview" class="page active"><div id="ov-content"></div></section>
+			<section id="page-daily" class="page"><div id="dy-content"></div></section>
+			<section id="page-monthly" class="page"><div id="mo-content"></div></section>
+			<section id="page-projects" class="page"><div id="pj-content"></div></section>
+			<section id="page-sessions" class="page"><div id="ss-content"></div></section>
+			<section id="page-models" class="page"><div id="md-content"></div></section>
+			<section id="page-breakdown" class="page"><div id="br-content"></div></section>
+			<section id="page-alerts" class="page"><div id="al-content"></div></section>
+			<section id="page-management" class="page"><div id="mg-content"></div></section>
+			<section id="page-insights" class="page"><div id="in-content"></div></section>
+		</main>
 
-<main class="main">
-  <section id="page-overview" class="page active"><div id="ov-content"></div></section>
-  <section id="page-daily" class="page"><div id="dy-content"></div></section>
-  <section id="page-monthly" class="page"><div id="mo-content"></div></section>
-  <section id="page-projects" class="page"><div id="pj-content"></div></section>
-  <section id="page-sessions" class="page"><div id="ss-content"></div></section>
-  <section id="page-models" class="page"><div id="md-content"></div></section>
-  <section id="page-breakdown" class="page"><div id="br-content"></div></section>
-  <section id="page-alerts" class="page"><div id="al-content"></div></section>
-  <section id="page-management" class="page"><div id="mg-content"></div></section>
-  <section id="page-insights" class="page"><div id="in-content"></div></section>
-</main>
+		<div id="modal" class="mo" onclick="if (event.target === this) closeModal();">
+			<div class="mo-box">
+				<button class="mo-x" onclick="closeModal()"><i data-lucide="x"></i></button>
+				<div id="mo-body"></div>
+			</div>
+		</div>
 
-<div id="modal" class="mo" onclick="if(event.target===this)closeModal()">
-  <div class="mo-box"><button class="mo-x" onclick="closeModal()"><i data-lucide="x"></i></button><div id="mo-body"></div></div>
-</div>
-
-<script src="/i18n.js"></script>
-<script src="/core.js"></script>
-<script src="/app.js"></script>
-<script>lucide.createIcons();</script>
-</body>
+		<script src="/i18n.js"></script>
+		<script src="/core.js"></script>
+		<script src="/app.js"></script>
+		<script>
+			lucide.createIcons();
+		</script>
+	</body>
 </html>

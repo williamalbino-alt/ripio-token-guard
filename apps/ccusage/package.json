@@ -1,20 +1,30 @@
 {
 	"name": "ccusage",
-	"type": "module",
 	"version": "18.0.11",
 	"description": "Usage analysis tool for Claude Code",
-	"author": "ryoppippi",
-	"license": "MIT",
-	"funding": "https://github.com/ryoppippi/ccusage?sponsor=1",
 	"homepage": "https://github.com/ryoppippi/ccusage#readme",
+	"bugs": {
+		"url": "https://github.com/ryoppippi/ccusage/issues"
+	},
+	"license": "MIT",
+	"author": "ryoppippi",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/ryoppippi/ccusage.git",
 		"directory": "apps/ccusage"
 	},
-	"bugs": {
-		"url": "https://github.com/ryoppippi/ccusage/issues"
+	"funding": "https://github.com/ryoppippi/ccusage?sponsor=1",
+	"bin": {
+		"ccusage": "./src/index.ts"
 	},
+	"files": [
+		"config-schema.json",
+		"dist"
+	],
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"exports": {
 		".": "./src/index.ts",
 		"./calculate-cost": "./src/calculate-cost.ts",
@@ -23,16 +33,6 @@
 		"./logger": "./src/logger.ts",
 		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"bin": {
-		"ccusage": "./src/index.ts"
-	},
-	"files": [
-		"config-schema.json",
-		"dist"
-	],
 	"publishConfig": {
 		"bin": {
 			"ccusage": "./dist/index.js"
@@ -45,9 +45,6 @@
 			"./logger": "./dist/logger.js",
 			"./package.json": "./package.json"
 		}
-	},
-	"engines": {
-		"node": ">=20.19.4"
 	},
 	"scripts": {
 		"build": "pnpm run generate:schema && tsdown",
@@ -102,5 +99,8 @@
 		"valibot": "catalog:runtime",
 		"vitest": "catalog:testing",
 		"xdg-basedir": "catalog:runtime"
+	},
+	"engines": {
+		"node": ">=20.19.4"
 	}
 }

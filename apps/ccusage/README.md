@@ -33,13 +33,19 @@
 
 Como **Token Guard** es una herramienta de uso interno, se distribuye de forma privada y segura a través de GitHub Packages.
 
+> **⚠️ Requisito previo:** Asegurate de tener **Node.js (v18 o superior)** instalado en tu Mac. Podés comprobarlo corriendo `node -v` en tu terminal.
+
 ### 1. Autenticación (Solo la primera vez)
 
-Para poder descargar el paquete, necesitás estar autenticado en el NPM Registry de GitHub. Ejecutá este comando e iniciá sesión con tu usuario de GitHub y un Personal Access Token (PAT) con permisos de `read:packages`:
+Para poder descargar el paquete, necesitás estar autenticado en el NPM Registry de GitHub. Ejecutá este comando e iniciá sesión con tu usuario de GitHub:
 
 ```bash
 npm login --registry=https://npm.pkg.github.com
 ```
+
+> **🔑 Importante sobre la contraseña:**
+> Cuando la terminal te pida el "Password", **NO uses tu contraseña normal de GitHub**. Tenés que usar un **Personal Access Token (PAT)**.
+> Para crearlo, andá a GitHub: `Settings` > `Developer settings` > `Personal access tokens` > `Tokens (classic)` > `Generate new token (classic)`. Dale un nombre y asegurate de tildar la cajita de **`read:packages`**.
 
 ### 2. Ejecución (Día a día)
 

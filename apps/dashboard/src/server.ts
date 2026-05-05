@@ -31,11 +31,17 @@ function getDirSizeBytes(dirPath: string): number {
 			if (entry.isDirectory()) {
 				total += getDirSizeBytes(full);
 			} else if (entry.isFile()) {
-				try { total += statSync(full).size; } catch { /* skip */ }
+				try {
+					total += statSync(full).size;
+				} catch {
+					/* skip */
+				}
 			}
 		}
 		return total;
-	} catch { return 0; }
+	} catch {
+		return 0;
+	}
 }
 
 /**
@@ -66,22 +72,29 @@ async function runCcusage(
 	const { promisify } = await import('node:util');
 	const { readFileSync, unlinkSync } = await import('node:fs');
 	const execAsync = promisify(exec);
-	
+
 	const tmpFile = `/tmp/ccusage_${Date.now()}_${Math.random().toString(36).slice(2)}.json`;
 	const argsStr = extraArgs.join(' ');
 	const env = { ...process.env, CLAUDE_CONFIG_DIR: opts.claudePath, LOG_LEVEL: '0' };
-	
+
 	try {
-		await execAsync(`"${opts.bunBin}" "${opts.ccusageBin}" ${command} --json ${argsStr} > "${tmpFile}"`, { 
-			env,
-			maxBuffer: 50 * 1024 * 1024
-		});
+		await execAsync(
+			`"${opts.bunBin}" "${opts.ccusageBin}" ${command} --json ${argsStr} > "${tmpFile}"`,
+			{
+				env,
+				maxBuffer: 50 * 1024 * 1024,
+			},
+		);
 		const data = readFileSync(tmpFile, 'utf8');
-		try { unlinkSync(tmpFile); } catch(e) {}
+		try {
+			unlinkSync(tmpFile);
+		} catch (e) {}
 		return JSON.parse(data);
 	} catch (err) {
 		console.error(`runCcusage error for command ${command}:`, err);
-		try { unlinkSync(tmpFile); } catch(e) {}
+		try {
+			unlinkSync(tmpFile);
+		} catch (e) {}
 		return null;
 	}
 }
@@ -120,8 +133,8 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 	// ─── API: Summary (Overview) ────────────────────────────
 	app.get('/api/summary', async (c) => {
-		const dailyRaw = await runCcusage(opts, 'daily') as any;
-		const monthlyRaw = await runCcusage(opts, 'monthly') as any;
+		const dailyRaw = (await runCcusage(opts, 'daily')) as any;
+		const monthlyRaw = (await runCcusage(opts, 'monthly')) as any;
 
 		const dailyData = dailyRaw?.daily ?? [];
 		const monthlyData = monthlyRaw?.monthly ?? [];
@@ -138,20 +151,24 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 		const dayOfMonth = new Date().getDate();
 		const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-		const projectedMonthlyCost = dayOfMonth > 0
-			? (currentMonthCost / dayOfMonth) * daysInMonth
-			: 0;
+		const projectedMonthlyCost = dayOfMonth > 0 ? (currentMonthCost / dayOfMonth) * daysInMonth : 0;
 
 		// Model breakdown aggregation
 		const modelCosts = new Map<string, number>();
 		const modelTokens = new Map<string, number>();
 		const allModels = new Set<string>();
 		for (const d of dailyData) {
-			for (const m of (d.modelsUsed ?? [])) allModels.add(m);
-			for (const b of (d.modelBreakdowns ?? [])) {
+			for (const m of d.modelsUsed ?? []) allModels.add(m);
+			for (const b of d.modelBreakdowns ?? []) {
 				modelCosts.set(b.modelName, (modelCosts.get(b.modelName) ?? 0) + b.cost);
-				modelTokens.set(b.modelName, (modelTokens.get(b.modelName) ?? 0) +
-					(b.inputTokens ?? 0) + (b.outputTokens ?? 0) + (b.cacheCreationTokens ?? 0) + (b.cacheReadTokens ?? 0));
+				modelTokens.set(
+					b.modelName,
+					(modelTokens.get(b.modelName) ?? 0) +
+						(b.inputTokens ?? 0) +
+						(b.outputTokens ?? 0) +
+						(b.cacheCreationTokens ?? 0) +
+						(b.cacheReadTokens ?? 0),
+				);
 			}
 		}
 
@@ -168,7 +185,7 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 		// Top project: match session paths against actual Claude projects directories
 		let topProject = { name: 'N/A', cost: 0 };
-		const sessionRaw = await runCcusage(opts, 'session') as any;
+		const sessionRaw = (await runCcusage(opts, 'session')) as any;
 		const sessions = sessionRaw?.sessions ?? [];
 
 		// Build a mapping from encoded dir name to real project basename
@@ -189,12 +206,12 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 					const parts = dir.split('-').filter(Boolean); // remove empty strings
 					const len = parts.length;
 					let projectName = dir;
-					
+
 					if (len > 0) {
 						// If the second to last part is 'apps' or 'packages', take 3 segments
 						if (len >= 3 && (parts[len - 2] === 'apps' || parts[len - 2] === 'packages')) {
 							projectName = parts.slice(len - 3).join('/');
-						} 
+						}
 						// Otherwise take 2 segments
 						else if (len >= 2) {
 							projectName = parts.slice(len - 2).join('/');
@@ -204,11 +221,13 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 							projectName = parts[len - 1];
 						}
 					}
-					
+
 					dirToProject.set(dir, projectName);
 				}
 			}
-		} catch { /* dir may not exist */ }
+		} catch {
+			/* dir may not exist */
+		}
 
 		const sessProjMap = new Map<string, number>();
 		for (const s of sessions) {
@@ -216,7 +235,10 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 			if (projPath === 'Unknown Project' || projPath === 'unknown') {
 				// Flag: potential API/MCP/extension token usage (no project dir)
-				sessProjMap.set('⚠ API / MCP / Extensões', (sessProjMap.get('⚠ API / MCP / Extensões') ?? 0) + (s.totalCost ?? 0));
+				sessProjMap.set(
+					'⚠ API / MCP / Extensões',
+					(sessProjMap.get('⚠ API / MCP / Extensões') ?? 0) + (s.totalCost ?? 0),
+				);
 				continue;
 			}
 
@@ -228,8 +250,10 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 			sessProjMap.set(projectName, (sessProjMap.get(projectName) ?? 0) + (s.totalCost ?? 0));
 		}
 		const sortedProjects = Array.from(sessProjMap.entries()).sort((a, b) => b[1] - a[1]);
-		if (sortedProjects.length > 0) topProject = { name: sortedProjects[0][0], cost: sortedProjects[0][1] };
-		const secondProject = sortedProjects.length > 1 ? { name: sortedProjects[1][0], cost: sortedProjects[1][1] } : null;
+		if (sortedProjects.length > 0)
+			topProject = { name: sortedProjects[0][0], cost: sortedProjects[0][1] };
+		const secondProject =
+			sortedProjects.length > 1 ? { name: sortedProjects[1][0], cost: sortedProjects[1][1] } : null;
 		// Include all projects for the overview
 		const allProjects = sortedProjects.map(([name, cost]) => ({ name, cost }));
 
@@ -248,7 +272,12 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 			secondProject,
 			allProjects,
 			logSizeBytes,
-			threshold: { monthlyLimit, usagePercent, alertLevel, remaining: Math.max(0, monthlyLimit - currentMonthCost) },
+			threshold: {
+				monthlyLimit,
+				usagePercent,
+				alertLevel,
+				remaining: Math.max(0, monthlyLimit - currentMonthCost),
+			},
 			lastUpdated: new Date().toISOString(),
 		});
 	});
@@ -257,7 +286,7 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 	app.get('/api/thresholds', (c) => c.json(thresholdConfig));
 
 	app.post('/api/thresholds', async (c) => {
-		const body = await c.req.json() as Partial<typeof thresholdConfig>;
+		const body = (await c.req.json()) as Partial<typeof thresholdConfig>;
 		thresholdConfig = { ...thresholdConfig, ...body };
 		// Sync with watcher
 		saveConfig({
@@ -271,17 +300,32 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 	// ─── API: Insights / Resumo Inteligente ─────────────────
 	app.get('/api/insights', async (c) => {
 		const lang = (c.req.query('lang') || 'es') as 'es' | 'pt';
-		const L = (es: string, pt: string) => lang === 'pt' ? pt : es;
-		const dailyRaw = await runCcusage(opts, 'daily') as any;
+		const L = (es: string, pt: string) => (lang === 'pt' ? pt : es);
+		const dailyRaw = (await runCcusage(opts, 'daily')) as any;
 		const dailyData = dailyRaw?.daily ?? [];
-		const totals = dailyRaw?.totals ?? { totalCost: 0, inputTokens: 0, outputTokens: 0, cacheCreationTokens: 0, cacheReadTokens: 0 };
+		const totals = dailyRaw?.totals ?? {
+			totalCost: 0,
+			inputTokens: 0,
+			outputTokens: 0,
+			cacheCreationTokens: 0,
+			cacheReadTokens: 0,
+		};
 		if (dailyData.length === 0) return c.json({ error: 'no data' });
 
 		// Model aggregation
-		const modelCosts = new Map<string, { cost: number; input: number; output: number; cacheCreate: number; cacheRead: number }>();
+		const modelCosts = new Map<
+			string,
+			{ cost: number; input: number; output: number; cacheCreate: number; cacheRead: number }
+		>();
 		for (const d of dailyData) {
-			for (const b of (d.modelBreakdowns ?? [])) {
-				const existing = modelCosts.get(b.modelName) ?? { cost: 0, input: 0, output: 0, cacheCreate: 0, cacheRead: 0 };
+			for (const b of d.modelBreakdowns ?? []) {
+				const existing = modelCosts.get(b.modelName) ?? {
+					cost: 0,
+					input: 0,
+					output: 0,
+					cacheCreate: 0,
+					cacheRead: 0,
+				};
 				existing.cost += b.cost;
 				existing.input += b.inputTokens ?? 0;
 				existing.output += b.outputTokens ?? 0;
@@ -309,7 +353,12 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 		// Estimate savings: if all opus usage switched to sonnet (sonnet is ~5x cheaper)
 		const savingIfSwitchToSonnet = opusCost * 0.8; // Sonnet is ~80% cheaper
-		const savingIfReduceContext = totalCacheCreate > 0 ? (totalCacheCreate / (totalInput + totalCacheCreate + totalCacheRead)) * totals.totalCost * 0.3 : 0;
+		const savingIfReduceContext =
+			totalCacheCreate > 0
+				? (totalCacheCreate / (totalInput + totalCacheCreate + totalCacheRead)) *
+					totals.totalCost *
+					0.3
+				: 0;
 		const potentialSaving = savingIfSwitchToSonnet * 0.5 + savingIfReduceContext; // conservative: only 50% of opus could switch
 
 		// Diagnosis text
@@ -319,18 +368,18 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 		let diagnosis = L(
 			`En los últimos ${dailyData.length} días, se gastaron $${totals.totalCost.toFixed(2)} en tokens. El promedio diario es de $${avgDaily.toFixed(2)}. `,
-			`Nos últimos ${dailyData.length} dias, foram gastos $${totals.totalCost.toFixed(2)} em tokens. A média diária é de $${avgDaily.toFixed(2)}. `
+			`Nos últimos ${dailyData.length} dias, foram gastos $${totals.totalCost.toFixed(2)} em tokens. A média diária é de $${avgDaily.toFixed(2)}. `,
 		);
 		if (isOpusHeavy) {
 			diagnosis += L(
 				`El principal problema es la concentración del ${opusPct.toFixed(0)}% de los costos en el modelo ${shortModel(topModelName)}, el modelo más caro de Anthropic. Cada token de input en Opus cuesta $15/MTok vs $3/MTok en Sonnet — una diferencia de 5x. `,
-				`O principal problema é a concentração de ${opusPct.toFixed(0)}% dos custos no modelo ${shortModel(topModelName)}, que é o modelo mais caro da Anthropic. Cada token de input no Opus custa $15/MTok vs $3/MTok no Sonnet — uma diferença de 5x. `
+				`O principal problema é a concentração de ${opusPct.toFixed(0)}% dos custos no modelo ${shortModel(topModelName)}, que é o modelo mais caro da Anthropic. Cada token de input no Opus custa $15/MTok vs $3/MTok no Sonnet — uma diferença de 5x. `,
 			);
 		}
 		if (highCacheCreate) {
 			diagnosis += L(
 				`Hay un volumen alto de "Cache Creation Tokens" (${(totalCacheCreate / 1e6).toFixed(1)}M), lo que significa que el contexto de las conversaciones se está recreando frecuentemente. Esto sucede cuando conversaciones largas se reinician o cuando el CLAUDE.md/contexto cambia mucho entre sesiones. `,
-				`Há um volume alto de "Cache Creation Tokens" (${(totalCacheCreate / 1e6).toFixed(1)}M), o que significa que o contexto das conversas está sendo recriado frequentemente. Isso acontece quando conversas longas são reiniciadas ou quando o sistema CLAUDE.md/contexto muda muito entre sessões. `
+				`Há um volume alto de "Cache Creation Tokens" (${(totalCacheCreate / 1e6).toFixed(1)}M), o que significa que o contexto das conversas está sendo recriado frequentemente. Isso acontece quando conversas longas são reiniciadas ou quando o sistema CLAUDE.md/contexto muda muito entre sessões. `,
 			);
 		}
 
@@ -339,63 +388,118 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 		if (isOpusHeavy) {
 			actions.push({
-				title: L('Usar Sonnet en vez de Opus para tareas rutinarias', 'Usar Sonnet em vez de Opus para tarefas rotineiras'),
+				title: L(
+					'Usar Sonnet en vez de Opus para tareas rutinarias',
+					'Usar Sonnet em vez de Opus para tarefas rotineiras',
+				),
 				description: L(
 					`El modelo ${shortModel(topModelName)} representa el ${opusPct.toFixed(0)}% de sus costos ($${opusCost.toFixed(2)}). Sonnet 4 es 5x más barato y en muchos escenarios de código tiene calidad comparable. Opus debe reservarse solo para tareas que exigen razonamiento profundo.`,
-					`O modelo ${shortModel(topModelName)} representa ${opusPct.toFixed(0)}% dos seus custos ($${opusCost.toFixed(2)}). Sonnet 4 é 5x mais barato e em muitos cenários de código tem qualidade comparable. Opus deve ser reservado apenas para tarefas que exigem raciocínio profundo.`
+					`O modelo ${shortModel(topModelName)} representa ${opusPct.toFixed(0)}% dos seus custos ($${opusCost.toFixed(2)}). Sonnet 4 é 5x mais barato e em muitos cenários de código tem qualidade comparable. Opus deve ser reservado apenas para tarefas que exigem raciocínio profundo.`,
 				),
-				saving: `~$${(savingIfSwitchToSonnet * 0.5).toFixed(0)}/${L('mes','mês')}`,
+				saving: `~$${(savingIfSwitchToSonnet * 0.5).toFixed(0)}/${L('mes', 'mês')}`,
 				steps: [
-					L('En Claude Code, use /model para cambiar a Sonnet antes de tareas simples (formateo, tests, docs)', 'No Claude Code, use /model para trocar para Sonnet antes de tarefas simples (formatação, testes, docs)'),
-					L('Reserve Opus solo para: debugging complejo, diseño de arquitectura y refactoring a gran escala', 'Reserve Opus apenas para: debugging complexo, design de arquitetura, e refactoring de grande escala'),
-					L('Configure el modelo predeterminado como Sonnet en su .claude/settings.json', 'Configure o modelo padrão como Sonnet no seu .claude/settings.json'),
+					L(
+						'En Claude Code, use /model para cambiar a Sonnet antes de tareas simples (formateo, tests, docs)',
+						'No Claude Code, use /model para trocar para Sonnet antes de tarefas simples (formatação, testes, docs)',
+					),
+					L(
+						'Reserve Opus solo para: debugging complejo, diseño de arquitectura y refactoring a gran escala',
+						'Reserve Opus apenas para: debugging complexo, design de arquitetura, e refactoring de grande escala',
+					),
+					L(
+						'Configure el modelo predeterminado como Sonnet en su .claude/settings.json',
+						'Configure o modelo padrão como Sonnet no seu .claude/settings.json',
+					),
 				],
-				risks: L('Sonnet puede generar respuestas menos precisas en tareas de razonamiento profundo. Para código crítico de producción, mantenga Opus. Para el 80% de las tareas diarias, Sonnet es suficiente.', 'Sonnet pode gerar respostas menos precisas em tarefas de raciocínio profundo. Para código crítico de produção, mantenha Opus. Para 80% das tarefas diárias, Sonnet é suficiente.'),
+				risks: L(
+					'Sonnet puede generar respuestas menos precisas en tareas de razonamiento profundo. Para código crítico de producción, mantenga Opus. Para el 80% de las tareas diarias, Sonnet es suficiente.',
+					'Sonnet pode gerar respostas menos precisas em tarefas de raciocínio profundo. Para código crítico de produção, mantenha Opus. Para 80% das tarefas diárias, Sonnet é suficiente.',
+				),
 			});
 		}
 
 		if (highCacheCreate) {
 			actions.push({
-				title: L('Reducir el contexto de las conversaciones para disminuir Cache Creation', 'Reduzir o contexto das conversas para diminuir Cache Creation'),
+				title: L(
+					'Reducir el contexto de las conversaciones para disminuir Cache Creation',
+					'Reduzir o contexto das conversas para diminuir Cache Creation',
+				),
 				description: L(
 					`Tiene ${(totalCacheCreate / 1e6).toFixed(1)}M tokens gastados en "Cache Creation" — esto es el costo de enviar el contexto completo al iniciar o reiniciar conversaciones. Cada vez que el contexto cambia significativamente, el cache se recrea desde cero.`,
-					`Você tem ${(totalCacheCreate / 1e6).toFixed(1)}M tokens gastos em "Cache Creation" — isso é o custo de enviar o contexto completo ao iniciar ou reiniciar conversas. Cada vez que o contexto muda significativamente, o cache é recriado do zero.`
+					`Você tem ${(totalCacheCreate / 1e6).toFixed(1)}M tokens gastos em "Cache Creation" — isso é o custo de enviar o contexto completo ao iniciar ou reiniciar conversas. Cada vez que o contexto muda significativamente, o cache é recriado do zero.`,
 				),
-				saving: `~$${savingIfReduceContext.toFixed(0)}/${L('mes','mês')}`,
+				saving: `~$${savingIfReduceContext.toFixed(0)}/${L('mes', 'mês')}`,
 				steps: [
-					L('Evite reiniciar conversaciones (cada /clear o nueva sesión recrea el cache entero)', 'Evite reiniciar conversas (cada /clear ou nova sessão recria o cache inteiro)'),
-					L('Reduzca el tamaño del CLAUDE.md — mantenga solo lo esencial', 'Reduza o tamanho do CLAUDE.md — mantenha apenas o essencial'),
-					L('Cierre pestañas/archivos no relevantes para la tarea actual antes de pedir al Claude', 'Feche abas/arquivos que não são relevantes para a tarefa atual antes de pedir ao Claude'),
-					L('Use conversaciones largas y continuas en vez de muchas cortas para la misma tarea', 'Use conversas longas e contínuas em vez de muitas conversas curtas para a mesma tarefa'),
-					L('Si es posible, agrupe tareas relacionadas en la misma sesión para reutilizar el cache', 'Se possível, agrupe tarefas relacionadas na mesma sessão para reaproveitar o cache'),
+					L(
+						'Evite reiniciar conversaciones (cada /clear o nueva sesión recrea el cache entero)',
+						'Evite reiniciar conversas (cada /clear ou nova sessão recria o cache inteiro)',
+					),
+					L(
+						'Reduzca el tamaño del CLAUDE.md — mantenga solo lo esencial',
+						'Reduza o tamanho do CLAUDE.md — mantenha apenas o essencial',
+					),
+					L(
+						'Cierre pestañas/archivos no relevantes para la tarea actual antes de pedir al Claude',
+						'Feche abas/arquivos que não são relevantes para a tarefa atual antes de pedir ao Claude',
+					),
+					L(
+						'Use conversaciones largas y continuas en vez de muchas cortas para la misma tarea',
+						'Use conversas longas e contínuas em vez de muitas conversas curtas para a mesma tarefa',
+					),
+					L(
+						'Si es posible, agrupe tareas relacionadas en la misma sesión para reutilizar el cache',
+						'Se possível, agrupe tarefas relacionadas na mesma sessão para reaproveitar o cache',
+					),
 				],
-				risks: L('Conversaciones muy largas pueden volverse lentas. Balance entre sesiones largas (mejor cache) y sesiones enfocadas (mejor calidad).', 'Conversas muito longas podem ficar lentas. Balance entre sessões longas (melhor cache) e sessões focadas (melhor qualidade).'),
+				risks: L(
+					'Conversaciones muy largas pueden volverse lentas. Balance entre sesiones largas (mejor cache) y sesiones enfocadas (mejor calidad).',
+					'Conversas muito longas podem ficar lentas. Balance entre sessões longas (melhor cache) e sessões focadas (melhor qualidade).',
+				),
 			});
 		}
 
 		if (avgDaily > 100) {
 			actions.push({
-				title: L('Implementar límites de gasto por proyecto', 'Implementar limites de gasto por projeto'),
+				title: L(
+					'Implementar límites de gasto por proyecto',
+					'Implementar limites de gasto por projeto',
+				),
 				description: L(
 					`Con un promedio de $${avgDaily.toFixed(0)}/día, la proyección mensual es de ~$${(avgDaily * 30).toFixed(0)}. Sin control, este valor puede escalar rápidamente. Configure alertas en este dashboard para ser notificado antes de superar el budget.`,
-					`Com uma média de $${avgDaily.toFixed(0)}/dia, a projeção mensal é de ~$${(avgDaily * 30).toFixed(0)}. Sem controle, esse valor pode escalar rapidamente. Configure alertas neste dashboard para ser notificado antes de ultrapassar o budget.`
+					`Com uma média de $${avgDaily.toFixed(0)}/dia, a projeção mensal é de ~$${(avgDaily * 30).toFixed(0)}. Sem controle, esse valor pode escalar rapidamente. Configure alertas neste dashboard para ser notificado antes de ultrapassar o budget.`,
 				),
 				saving: L('Control preventivo', 'Controle preventivo'),
 				steps: [
-					L('Vaya a "Alertas y Límites" y configure un límite mensual realista', 'Vá em "Alertas & Limites" e configure um limite mensal realista'),
-					L('Monitoree este dashboard diariamente — 5 minutos de chequeo pueden evitar sorpresas', 'Monitore este dashboard diariamente — 5 minutos de checagem podem evitar surpresas'),
-					L('Identifique proyectos con costo desproporcionado en la pestaña "Proyectos"', 'Identifique projetos com custo desproporcional na aba "Projetos"'),
-					L('Defina un "budget por conversación" interno — si una tarea está costando mucho, pause y reevalúe', 'Defina um "budget por conversa" interno — se uma tarefa está custando muito, pause e reavalie'),
+					L(
+						'Vaya a "Alertas y Límites" y configure un límite mensual realista',
+						'Vá em "Alertas & Limites" e configure um limite mensal realista',
+					),
+					L(
+						'Monitoree este dashboard diariamente — 5 minutos de chequeo pueden evitar sorpresas',
+						'Monitore este dashboard diariamente — 5 minutos de checagem podem evitar surpresas',
+					),
+					L(
+						'Identifique proyectos con costo desproporcionado en la pestaña "Proyectos"',
+						'Identifique projetos com custo desproporcional na aba "Projetos"',
+					),
+					L(
+						'Defina un "budget por conversación" interno — si una tarea está costando mucho, pause y reevalúe',
+						'Defina um "budget por conversa" interno — se uma tarefa está custando muito, pause e reavalie',
+					),
 				],
 				risks: null,
 			});
 		}
 
-		const termBlock = (cmd: string) => `<div class="term-block"><span class="term-prompt">$</span><span class="term-cmd">${cmd}</span><button class="term-copy" onclick="navigator.clipboard.writeText('${cmd.replace(/'/g, "\\'")}')"><svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='14' height='14' x='8' y='8' rx='2' ry='2'/><path d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/></svg></button></div>`;
+		const termBlock = (cmd: string) =>
+			`<div class="term-block"><span class="term-prompt">$</span><span class="term-cmd">${cmd}</span><button class="term-copy" onclick="navigator.clipboard.writeText('${cmd.replace(/'/g, "\\'")}')"><svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='14' height='14' x='8' y='8' rx='2' ry='2'/><path d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/></svg></button></div>`;
 		const codeInline = (cmd: string) => `<span class="code-inline">${cmd}</span>`;
 
 		actions.push({
-			title: L('Tutorial: Estrategias para dejar de quemar tokens', 'Tutorial: Estratégias para parar de queimar tokens'),
+			title: L(
+				'Tutorial: Estrategias para dejar de quemar tokens',
+				'Tutorial: Estratégias para parar de queimar tokens',
+			),
 			description: `
 				<p>${L('Para controlar el costo financiero, tenés tres alternativas de flujo de trabajo en Claude Code. Evaluá cuál tiene más sentido para tu día a día:', 'Para controlar o custo financeiro, você tem três alternativas de fluxo de trabalho no Claude Code. Avalie qual faz mais sentido para o seu dia a dia:')}</p>
 				<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 16px;">
@@ -430,7 +534,10 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 		});
 
 		actions.push({
-			title: L('Tutorial: Optimización de los archivos CLAUDE.md', 'Tutorial: Otimização dos arquivos CLAUDE.md'),
+			title: L(
+				'Tutorial: Optimización de los archivos CLAUDE.md',
+				'Tutorial: Otimização dos arquivos CLAUDE.md',
+			),
 			description: `
 				<p style="margin-bottom: 12px;">${L(`El archivo ${codeInline('CLAUDE.md')} dicta el comportamiento del agente. Como se lee en <strong>cada prompt</strong>, instrucciones ineficientes multiplican sus costos.`, `O arquivo ${codeInline('CLAUDE.md')} dita o comportamento do agente. Como ele é lido a <strong>cada prompt</strong>, instruções ineficientes multiplicam seus custos.`)}</p>
 				<p style="margin-bottom: 8px; font-size: 13px;"><strong>Global</strong> (${L('afecta todos los proyectos', 'afeta todos os projetos')}):</p>
@@ -454,27 +561,39 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 		// Warnings
 		const warnings = [];
-		if (opusPct > 70) warnings.push(L(
-			`${shortModel(topModelName)} concentra el ${opusPct.toFixed(0)}% de los costos — cada conversación en Opus cuesta ~5x más que en Sonnet`,
-			`${shortModel(topModelName)} concentra ${opusPct.toFixed(0)}% dos custos — cada conversa em Opus custa ~5x mais que em Sonnet`
-		));
-		if (avgDaily > 300) warnings.push(L(
-			`Promedio diario de $${avgDaily.toFixed(0)} — proyección anual: $${(avgDaily * 365).toFixed(0)}`,
-			`Média diária de $${avgDaily.toFixed(0)} — projeção anual: $${(avgDaily * 365).toFixed(0)}`
-		));
-		if (highCacheCreate) warnings.push(L(
-			`${(totalCacheCreate / 1e6).toFixed(1)}M tokens gastados en recreación de cache — el contexto se está reprocesando excesivamente`,
-			`${(totalCacheCreate / 1e6).toFixed(1)}M tokens gastos em recriação de cache — o contexto está sendo reprocessado excessivamente`
-		));
+		if (opusPct > 70)
+			warnings.push(
+				L(
+					`${shortModel(topModelName)} concentra el ${opusPct.toFixed(0)}% de los costos — cada conversación en Opus cuesta ~5x más que en Sonnet`,
+					`${shortModel(topModelName)} concentra ${opusPct.toFixed(0)}% dos custos — cada conversa em Opus custa ~5x mais que em Sonnet`,
+				),
+			);
+		if (avgDaily > 300)
+			warnings.push(
+				L(
+					`Promedio diario de $${avgDaily.toFixed(0)} — proyección anual: $${(avgDaily * 365).toFixed(0)}`,
+					`Média diária de $${avgDaily.toFixed(0)} — projeção anual: $${(avgDaily * 365).toFixed(0)}`,
+				),
+			);
+		if (highCacheCreate)
+			warnings.push(
+				L(
+					`${(totalCacheCreate / 1e6).toFixed(1)}M tokens gastados en recreación de cache — el contexto se está reprocesando excesivamente`,
+					`${(totalCacheCreate / 1e6).toFixed(1)}M tokens gastos em recriação de cache — o contexto está sendo reprocessado excessivamente`,
+				),
+			);
 		const costs7d = dailyData.slice(-7).map((d: any) => d.totalCost);
 		const costs7dPrev = dailyData.slice(-14, -7).map((d: any) => d.totalCost);
 		if (costs7d.length >= 7 && costs7dPrev.length >= 7) {
 			const avg7 = costs7d.reduce((a: number, b: number) => a + b, 0) / 7;
 			const avgPrev = costs7dPrev.reduce((a: number, b: number) => a + b, 0) / 7;
-			if (avg7 > avgPrev * 1.3) warnings.push(L(
-				`Tendencia al alza: gasto de los últimos 7 días es ${((avg7 / avgPrev - 1) * 100).toFixed(0)}% mayor que la semana anterior`,
-				`Tendência de alta: gasto dos últimos 7 dias é ${((avg7 / avgPrev - 1) * 100).toFixed(0)}% maior que a semana anterior`
-			));
+			if (avg7 > avgPrev * 1.3)
+				warnings.push(
+					L(
+						`Tendencia al alza: gasto de los últimos 7 días es ${((avg7 / avgPrev - 1) * 100).toFixed(0)}% mayor que la semana anterior`,
+						`Tendência de alta: gasto dos últimos 7 dias é ${((avg7 / avgPrev - 1) * 100).toFixed(0)}% maior que a semana anterior`,
+					),
+				);
 		}
 
 		return c.json({
@@ -491,18 +610,26 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 
 	// ─── API: Projects breakdown ────────────────────────────
 	app.get('/api/projects', async (c) => {
-		const dailyRaw = await runCcusage(opts, 'daily', ['--instances']) as any;
+		const dailyRaw = (await runCcusage(opts, 'daily', ['--instances'])) as any;
 		const dailyData = dailyRaw?.daily ?? [];
 
 		// If we got project-grouped data from "projects" key
 		const projectsObj = dailyRaw?.projects;
 		if (projectsObj && typeof projectsObj === 'object') {
-			const projects = Object.entries(projectsObj).map(([name, entries]: [string, any]) => {
-				const totalCost = entries.reduce((a: number, e: any) => a + (e.totalCost ?? 0), 0);
-				const totalTokens = entries.reduce((a: number, e: any) => a + (e.totalTokens ?? 0), 0);
-				const days = new Set(entries.map((e: any) => e.date));
-				return { name, totalCost, totalTokens, activeDays: days.size, limit: thresholdConfig.projectLimits[name] ?? null };
-			}).sort((a, b) => b.totalCost - a.totalCost);
+			const projects = Object.entries(projectsObj)
+				.map(([name, entries]: [string, any]) => {
+					const totalCost = entries.reduce((a: number, e: any) => a + (e.totalCost ?? 0), 0);
+					const totalTokens = entries.reduce((a: number, e: any) => a + (e.totalTokens ?? 0), 0);
+					const days = new Set(entries.map((e: any) => e.date));
+					return {
+						name,
+						totalCost,
+						totalTokens,
+						activeDays: days.size,
+						limit: thresholdConfig.projectLimits[name] ?? null,
+					};
+				})
+				.sort((a, b) => b.totalCost - a.totalCost);
 			return c.json({ projects });
 		}
 
@@ -518,7 +645,13 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 		}
 
 		const projects = Array.from(projectMap.entries())
-			.map(([name, data]) => ({ name, totalCost: data.cost, totalTokens: data.tokens, activeDays: data.days.size, limit: thresholdConfig.projectLimits[name] ?? null }))
+			.map(([name, data]) => ({
+				name,
+				totalCost: data.cost,
+				totalTokens: data.tokens,
+				activeDays: data.days.size,
+				limit: thresholdConfig.projectLimits[name] ?? null,
+			}))
 			.sort((a, b) => b.totalCost - a.totalCost);
 		return c.json({ projects });
 	});
@@ -529,7 +662,7 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 	});
 
 	app.post('/api/watcher/config', async (c) => {
-		const body = await c.req.json() as { slackWebhookUrl?: string };
+		const body = (await c.req.json()) as { slackWebhookUrl?: string };
 		if (body.slackWebhookUrl !== undefined) {
 			saveConfig({ slackWebhookUrl: body.slackWebhookUrl || null });
 		}
@@ -542,20 +675,36 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 			start(controller) {
 				const encoder = new TextEncoder();
 				const send = (data: string) => {
-					try { controller.enqueue(encoder.encode(`data: ${data}\n\n`)); } catch { /* closed */ }
+					try {
+						controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+					} catch {
+						/* closed */
+					}
 				};
 
 				// Send initial state
-				send(JSON.stringify({ type: 'connected', data: getWatcherState(), timestamp: new Date().toISOString() }));
+				send(
+					JSON.stringify({
+						type: 'connected',
+						data: getWatcherState(),
+						timestamp: new Date().toISOString(),
+					}),
+				);
 
 				// Subscribe to watcher events
 				const unsub = subscribe((event) => send(JSON.stringify(event)));
 
 				// Heartbeat every 30s
-				const hb = setInterval(() => send(JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })), 30000);
+				const hb = setInterval(
+					() => send(JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })),
+					30000,
+				);
 
 				// Cleanup on close
-				c.req.raw.signal.addEventListener('abort', () => { unsub(); clearInterval(hb); });
+				c.req.raw.signal.addEventListener('abort', () => {
+					unsub();
+					clearInterval(hb);
+				});
 			},
 		});
 
@@ -563,7 +712,7 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 			headers: {
 				'Content-Type': 'text/event-stream',
 				'Cache-Control': 'no-cache',
-				'Connection': 'keep-alive',
+				Connection: 'keep-alive',
 			},
 		});
 	});
@@ -571,8 +720,12 @@ export function createDashboardApp(opts: DashboardOptions): Hono {
 	// ─── Serve Static Files ─────────────────────────────────
 	const publicDir = path.join(__dirname, 'public');
 	const mimeTypes: Record<string, string> = {
-		'.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
-		'.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml',
+		'.html': 'text/html',
+		'.css': 'text/css',
+		'.js': 'application/javascript',
+		'.json': 'application/json',
+		'.png': 'image/png',
+		'.svg': 'image/svg+xml',
 	};
 
 	app.get('/', (c) => {

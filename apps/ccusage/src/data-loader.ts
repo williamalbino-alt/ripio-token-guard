@@ -991,14 +991,24 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 		await processJSONLFileByLine(file, async (line) => {
 			try {
 				const parsed = JSON.parse(line);
-				
+
 				// Capture metadata independently of usage schema
-				if (parsed.type === 'ai-title') {aiTitle = parsed.aiTitle;}
-				if (parsed.gitBranch) {gitBranch = parsed.gitBranch;}
-				if (parsed.entrypoint) {entrypoint = parsed.entrypoint;}
-				if (parsed.cwd) {cwd = parsed.cwd;}
-				if (parsed.toolUseResult?.is_error || parsed.isApiErrorMessage) {hasErrors = true;}
-				
+				if (parsed.type === 'ai-title') {
+					aiTitle = parsed.aiTitle;
+				}
+				if (parsed.gitBranch) {
+					gitBranch = parsed.gitBranch;
+				}
+				if (parsed.entrypoint) {
+					entrypoint = parsed.entrypoint;
+				}
+				if (parsed.cwd) {
+					cwd = parsed.cwd;
+				}
+				if (parsed.toolUseResult?.is_error || parsed.isApiErrorMessage) {
+					hasErrors = true;
+				}
+
 				if (parsed.message?.content && Array.isArray(parsed.message.content)) {
 					for (const item of parsed.message.content) {
 						if (item.type === 'tool_use' && item.name) {
@@ -1040,7 +1050,7 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 					entrypoint,
 					cwd,
 					hasErrors,
-					toolsUsed: { ...toolsUsed }
+					toolsUsed: { ...toolsUsed },
 				});
 			} catch {
 				// Skip invalid JSON lines
@@ -1108,13 +1118,16 @@ export async function loadSessionData(options?: LoadOptions): Promise<SessionUsa
 				gitBranch: latestEntry.gitBranch,
 				entrypoint: latestEntry.entrypoint,
 				cwd: latestEntry.cwd,
-				hasErrors: entries.some(e => e.hasErrors),
-				toolsUsed: entries.reduce((acc, curr) => {
-					for (const [tool, count] of Object.entries(curr.toolsUsed || {})) {
-						acc[tool] = (acc[tool] || 0) + count;
-					}
-					return acc;
-				}, {} as Record<string, number>)
+				hasErrors: entries.some((e) => e.hasErrors),
+				toolsUsed: entries.reduce(
+					(acc, curr) => {
+						for (const [tool, count] of Object.entries(curr.toolsUsed || {})) {
+							acc[tool] = (acc[tool] || 0) + count;
+						}
+						return acc;
+					},
+					{} as Record<string, number>,
+				),
 			};
 		})
 		.filter((item) => item != null);

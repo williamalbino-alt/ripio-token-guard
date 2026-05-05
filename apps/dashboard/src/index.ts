@@ -37,12 +37,13 @@ if (!existsSync(ccusageBin)) {
 
 // Detect Claude config path
 const home = process.env.HOME ?? process.env.USERPROFILE ?? '';
-const claudePaths = [
-	path.join(home, '.config', 'claude'),
-	path.join(home, '.claude'),
-];
-const claudePath = claudePaths.find(p => {
-	try { return existsSync(path.join(p, 'projects')); } catch { return false; }
+const claudePaths = [path.join(home, '.config', 'claude'), path.join(home, '.claude')];
+const claudePath = claudePaths.find((p) => {
+	try {
+		return existsSync(path.join(p, 'projects'));
+	} catch {
+		return false;
+	}
 });
 
 if (!claudePath) {

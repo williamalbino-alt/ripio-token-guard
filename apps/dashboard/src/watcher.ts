@@ -52,7 +52,9 @@ function loadConfig(configPath: string): Partial<WatcherConfig> {
 		if (existsSync(configPath)) {
 			return JSON.parse(readFileSync(configPath, 'utf-8'));
 		}
-	} catch { /* ignore */ }
+	} catch {
+		/* ignore */
+	}
 	return {};
 }
 
@@ -70,7 +72,9 @@ export function saveConfig(updates: Partial<WatcherConfig>): void {
 			slackWebhookUrl: config.slackWebhookUrl,
 		};
 		writeFileSync(config.configPath, JSON.stringify(persist, null, 2));
-	} catch { /* ignore */ }
+	} catch {
+		/* ignore */
+	}
 }
 
 /**
@@ -86,7 +90,12 @@ function sendMacNotification(title: string, message: string, sound = 'Basso'): v
 /**
  * Send Slack webhook (zero deps — uses native fetch)
  */
-async function sendSlackAlert(webhookUrl: string, level: string, cost: number, limit: number): Promise<void> {
+async function sendSlackAlert(
+	webhookUrl: string,
+	level: string,
+	cost: number,
+	limit: number,
+): Promise<void> {
 	const emoji = level === 'critical' ? '🚨' : '⚠️';
 	const pct = limit > 0 ? ((cost / limit) * 100).toFixed(1) : '∞';
 	const payload = {
@@ -108,7 +117,11 @@ async function sendSlackAlert(webhookUrl: string, level: string, cost: number, l
  */
 function emit(event: WatcherEvent): void {
 	for (const listener of state.listeners) {
-		try { listener(event); } catch { /* ignore */ }
+		try {
+			listener(event);
+		} catch {
+			/* ignore */
+		}
 	}
 }
 
@@ -132,12 +145,14 @@ function checkThresholds(currentMonthCost: number): void {
 	else if (pct >= warningPercent) alertLevel = 'warning';
 
 	const now = Date.now();
-	const shouldNotify = alertLevel !== 'normal' &&
+	const shouldNotify =
+		alertLevel !== 'normal' &&
 		alertLevel !== state.lastAlertLevel &&
-		(now - state.lastNotifiedAt) > NOTIFY_COOLDOWN_MS;
+		now - state.lastNotifiedAt > NOTIFY_COOLDOWN_MS;
 
 	if (shouldNotify) {
-		const title = alertLevel === 'critical' ? 'ALERTA CRÍTICO — Token Guard' : 'Atenção — Token Guard';
+		const title =
+			alertLevel === 'critical' ? 'ALERTA CRÍTICO — Token Guard' : 'Atenção — Token Guard';
 		const msg = `Gasto mensal: $${currentMonthCost.toFixed(2)} (${pct.toFixed(0)}% do limite de $${monthlyLimit})`;
 
 		// macOS notification
@@ -175,10 +190,14 @@ function parseMonthCostFromFile(filePath: string, currentMonth: string): number 
 				if (entry.timestamp && entry.timestamp.startsWith(currentMonth)) {
 					cost += entry.costUSD ?? 0;
 				}
-			} catch { /* skip malformed lines */ }
+			} catch {
+				/* skip malformed lines */
+			}
 		}
 		return cost;
-	} catch { return 0; }
+	} catch {
+		return 0;
+	}
 }
 
 /**
@@ -201,7 +220,9 @@ function computeCurrentMonthCost(claudePath: string): number {
 				}
 			}
 		}
-	} catch { /* ignore */ }
+	} catch {
+		/* ignore */
+	}
 
 	return totalCost;
 }
@@ -265,7 +286,11 @@ export function startWatcher(opts: { claudePath: string; configPath: string }): 
 /**
  * Get current watcher state
  */
-export function getWatcherState(): { cost: number; alertLevel: string; config: Omit<WatcherConfig, 'configPath'> } {
+export function getWatcherState(): {
+	cost: number;
+	alertLevel: string;
+	config: Omit<WatcherConfig, 'configPath'>;
+} {
 	return {
 		cost: state.lastCost,
 		alertLevel: state.lastAlertLevel,
